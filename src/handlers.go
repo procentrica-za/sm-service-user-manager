@@ -28,7 +28,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			return
 		}
 		if req.StatusCode != 200 {
-			fmt.Println(w, "Request to DB can't be completed...")
+			fmt.Println(w, "Request to DB can't be completed to register user")
 			fmt.Println("Unable to process registration")
 		}
 		if req.StatusCode == 500 {
@@ -38,8 +38,8 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 				log.Fatal(err)
 			}
 			bodyString := string(bodyBytes)
-			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
+			fmt.Fprintf(w, "Request to DB can't be completed to register user"+bodyString)
+			fmt.Println(w, "Request to DB can't be completed to register user"+bodyString)
 			return
 		}
 		if err != nil {
@@ -150,8 +150,8 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 				log.Fatal(err)
 			}
 			bodyString := string(bodyBytes)
-			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
+			fmt.Fprintf(w, "Request to DB can't be completed to delete user"+bodyString)
+			fmt.Println(w, "Request to DB can't be completed to delete user"+bodyString)
 			return
 		}
 		var deleteResponse DeleteUserResult
@@ -199,7 +199,7 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 			return
 		}
 		if req.StatusCode != 200 {
-			fmt.Println("Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed to login user")
 		}
 		if req.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -253,8 +253,8 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 		}
 		if req.StatusCode != 200 {
 			w.WriteHeader(500)
-			fmt.Fprint(w, "Request to DB can't be completed...")
-			fmt.Println(w, "Request to DB can't be completed...")
+			fmt.Fprint(w, "Request to DB can't be completed to get user")
+			fmt.Println(w, "Request to DB can't be completed to get user")
 		}
 		if req.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -309,7 +309,7 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 			return
 		}
 		if req.StatusCode != 200 {
-			fmt.Println(w, "Request to DB can't be completed...")
+			fmt.Println(w, "Request to DB can't be completed to handle forget password")
 		}
 		if req.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -318,8 +318,8 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 				log.Fatal(err)
 			}
 			bodyString := string(bodyBytes)
-			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
+			fmt.Fprintf(w, "Request to DB can't be completed to handle forget password"+bodyString)
+			fmt.Println(w, "Request to DB can't be completed to handle forget password"+bodyString)
 			return
 		}
 		if err != nil {
