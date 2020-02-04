@@ -56,7 +56,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, err.Error())
-			fmt.Println("Error occured in decoding registration result")
+			fmt.Println("Error occured in decoding registration response")
 			return
 		}
 		fmt.Println(registerResponse.UserCreated)
@@ -140,7 +140,7 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
-			fmt.Println(w, "Request to DB can't be completed...")
+			fmt.Println(w, "An error has occured whilst sending user ID for deletion")
 		}
 		if resp.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -179,13 +179,13 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 		if username == "" {
 			w.WriteHeader(500)
 			fmt.Fprint(w, "No username")
-			fmt.Println("No username provided")
+			fmt.Println("A username has not been provided")
 			return
 		}
 		if password == "" {
 			w.WriteHeader(500)
 			fmt.Fprint(w, "No password")
-			fmt.Println("No password provided")
+			fmt.Println("A password has not been provided")
 			return
 		}
 		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/userlogin?username=" + username + "&password=" + password)
@@ -246,7 +246,7 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 		if respErr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, respErr.Error())
-			fmt.Println("Error in communication with CRUD service endpoint for request to get user")
+			fmt.Println("Error in communication with CRUD service endpoint for request to retrieve user information")
 			return
 		}
 		if req.StatusCode != 200 {
@@ -261,8 +261,8 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 				log.Fatal(err)
 			}
 			bodyString := string(bodyBytes)
-			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
+			fmt.Fprintf(w, "An internal error has occured whilst trying to get user data"+bodyString)
+			fmt.Println(w, "An internal error has occured whilst trying to get user data"+bodyString)
 			return
 		}
 		defer req.Body.Close()
@@ -272,12 +272,14 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, err.Error())
+			fmt.Println("An internal error has occured whilst trying to decode the get user response")
 			return
 		}
 		js, jserr := json.Marshal(getResponse)
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Unable to marshal response for getting user data")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
