@@ -45,7 +45,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, err.Error())
-			fmt.Println("Registration is not able to be completed - status 500")
+			fmt.Println("Registration is not able to be completed by internal error")
 			return
 		}
 		defer req.Body.Close()
@@ -65,7 +65,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println(w, "Error occured with the response of registration")
+			fmt.Println(w, "Error occured when trying to marshal the response to register user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -114,6 +114,7 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
+			fmt.Println(w, "Error occured when trying to marshal the response to update user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -165,6 +166,7 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
+			fmt.Println(w, "Error occured when trying to marshal the response to delete a user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -224,7 +226,7 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println("unable to marshal login response")
+			fmt.Println(w, "Error occured when trying to marshal the response to logging in a user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -279,7 +281,7 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println("Unable to marshal response for getting user data")
+			fmt.Println(w, "Error occured when trying to marshal the response to get user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -338,64 +340,7 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		w.Write(js)
-	}
-}
-func (s *Server) handlelogoutuser() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logoutUser := LogoutUser{}
-		err := json.NewDecoder(r.Body).Decode(&logoutUser)
-		if err != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, err.Error())
-			return
-		}
-		requestByte, _ := json.Marshal(logoutUser)
-
-		req, respErr := http.Post("http://"+config.CRUDHost+":"+config.CRUDPort+"/userlogout", "application/json", bytes.NewBuffer(requestByte))
-
-		if respErr != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, respErr.Error())
-			fmt.Println("Error in communication with CRUD service endpoint for request to logout user")
-			return
-		}
-		if req.StatusCode != 200 {
-			fmt.Println("Error in communication with CRUD service endpoint for request")
-		}
-		if req.StatusCode == 500 {
-			w.WriteHeader(500)
-			bodyBytes, err := ioutil.ReadAll(req.Body)
-			if err != nil {
-				log.Fatal(err)
-			}
-			bodyString := string(bodyBytes)
-			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
-			return
-		}
-		if err != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, respErr.Error())
-			return
-		}
-		defer req.Body.Close()
-		var logoutResponse LogoutUserResult
-		decoder := json.NewDecoder(req.Body)
-		err = decoder.Decode(&logoutResponse)
-		if err != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, err.Error())
-			return
-		}
-		js, jserr := json.Marshal(logoutResponse)
-		if jserr != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, jserr.Error())
+			fmt.Println(w, "Error occured when trying to marshal the response to forget password")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
