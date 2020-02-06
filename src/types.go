@@ -2,6 +2,7 @@ package main
 
 import "github.com/gorilla/mux"
 
+//create structs for JSON objects recieved and responses
 type RegisterUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -68,10 +69,15 @@ type ForgetPasswordResult struct {
 type LogoutUserResult struct {
 	Username string `json:"username"`
 }
+
+//touter service struct
 type Server struct {
 	router *mux.Router
 }
+
+//config struct
 type Config struct {
-	CRUDHost string
-	CRUDPort string
+	CRUDHost        string
+	CRUDPort        string
+	USERMANAGERPort string
 }

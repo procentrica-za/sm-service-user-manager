@@ -11,16 +11,24 @@ import (
 
 func (s *Server) handleregisteruser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//get JSON payload
 		regUser := RegisterUser{}
 		err := json.NewDecoder(r.Body).Decode(&regUser)
+
+		//handle for bad JSON provided
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, err.Error())
 			fmt.Println("Improper registration details provided")
 			return
 		}
+		//create byte array from JSON payload
 		requestByte, _ := json.Marshal(regUser)
+
+		//post to crud service
 		req, respErr := http.Post("http://"+config.CRUDHost+":"+config.CRUDPort+"/user", "application/json", bytes.NewBuffer(requestByte))
+
+		//check for response error of 500
 		if respErr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, respErr.Error())
@@ -33,6 +41,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 		}
 		if req.StatusCode == 500 {
 			w.WriteHeader(500)
+
 			bodyBytes, err := ioutil.ReadAll(req.Body)
 			if err != nil {
 				log.Fatal(err)
@@ -48,10 +57,16 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			fmt.Println("Registration is not able to be completed by internal error")
 			return
 		}
+
+		//close the request
 		defer req.Body.Close()
+
+		//create new response struct
 		var registerResponse RegisterUserResult
 
+		//decode request into decoder which converts to the struct
 		decoder := json.NewDecoder(req.Body)
+
 		err = decoder.Decode(&registerResponse)
 		if err != nil {
 			w.WriteHeader(500)
@@ -66,6 +81,8 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			fmt.Println("Error occured when trying to marshal the response to register user")
 			return
 		}
+
+		//return back to whoever made the call in the first place
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -73,8 +90,11 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 }
 func (s *Server) handleupdateuser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//get JSON payload
 		updateUser := UpdateUser{}
 		err := json.NewDecoder(r.Body).Decode(&updateUser)
+
+		//handle for bad JSON provided
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, err.Error())
@@ -83,8 +103,10 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 
 		client := &http.Client{}
 
-		// Create request
+		//create byte array from JSON payload
 		requestByte, _ := json.Marshal(updateUser)
+
+		//put to crud service
 		req, err := http.NewRequest("PUT", "http://"+config.CRUDHost+":"+config.CRUDPort+"/user", bytes.NewBuffer(requestByte))
 		if err != nil {
 			fmt.Fprint(w, err.Error())
@@ -98,8 +120,11 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 			fmt.Fprint(w, err.Error())
 			return
 		}
+
+		//close the request
 		defer resp.Body.Close()
 
+		//create new response struct
 		var updateResponse UpdateUserResult
 		decoder := json.NewDecoder(resp.Body)
 		err = decoder.Decode(&updateResponse)
@@ -108,6 +133,8 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 			fmt.Fprint(w, err.Error())
 			return
 		}
+
+		//convert struct back to JSON
 		js, jserr := json.Marshal(updateResponse)
 		if jserr != nil {
 			w.WriteHeader(500)
@@ -115,6 +142,8 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 			fmt.Println("Error occured when trying to marshal the response to update user")
 			return
 		}
+
+		//return back to whoever made the call in the first place
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -122,9 +151,14 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 }
 func (s *Server) handledeleteuser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//get id of user for deletion
 		userid := r.URL.Query().Get("id")
 		client := &http.Client{}
+
+		//send delete request to CRUD service
 		req, respErr := http.NewRequest("DELETE", "http://"+config.CRUDHost+":"+config.CRUDPort+"/user?id="+userid, nil)
+
+		//check for response error of 500
 		if respErr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, respErr.Error())
@@ -137,6 +171,8 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 			fmt.Fprint(w, err.Error())
 			return
 		}
+
+		//close the request
 		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			fmt.Println("An error has occured whilst sending user ID for deletion")
@@ -152,6 +188,8 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 			fmt.Println("Request to DB can't be completed..."+bodyString)
 			return
 		}
+
+		//create new response struct
 		var deleteResponse DeleteUserResult
 		decoder := json.NewDecoder(resp.Body)
 		err = decoder.Decode(&deleteResponse)
@@ -160,6 +198,8 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 			fmt.Fprint(w, err.Error())
 			return
 		}
+
+		//convert struct back to JSON
 		js, jserr := json.Marshal(deleteResponse)
 		if jserr != nil {
 			w.WriteHeader(500)
@@ -167,6 +207,8 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 			fmt.Println("Error occured when trying to marshal the response to delete a user")
 			return
 		}
+
+		//return back to whoever made the call in the first place
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -174,6 +216,7 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 }
 func (s *Server) handleloginuser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//get username and password for login
 		username := r.URL.Query().Get("username")
 		password := r.URL.Query().Get("password")
 		if username == "" {
@@ -188,8 +231,11 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 			fmt.Println("A password has not been provided in URL")
 			return
 		}
+
+		//get from CRUD service
 		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/userlogin?username=" + username + "&password=" + password)
 
+		//check for response error of 500
 		if respErr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, respErr.Error())
@@ -197,7 +243,7 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 			return
 		}
 		if req.StatusCode != 200 {
-			fmt.Println("Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed to login user")
 		}
 		if req.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -210,7 +256,11 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 			fmt.Println("Database error occured upon retrieval" + bodyString)
 			return
 		}
+
+		//close the request
 		defer req.Body.Close()
+
+		//create new response struct
 		var loginResponse LoginUserResult
 		decoder := json.NewDecoder(req.Body)
 		err := decoder.Decode(&loginResponse)
@@ -220,6 +270,8 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 			fmt.Println("Unable to decode login response")
 			return
 		}
+
+		//convert struct back to JSON
 		js, jserr := json.Marshal(loginResponse)
 		if jserr != nil {
 			w.WriteHeader(500)
@@ -227,6 +279,8 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 			fmt.Println("Error occured when trying to marshal the response to logging in a user")
 			return
 		}
+
+		//return back to whoever made the call in the first place
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -235,6 +289,7 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 
 func (s *Server) handlegetuser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//get userID from url
 		userid := r.URL.Query().Get("id")
 		if userid == "" {
 			w.WriteHeader(500)
@@ -242,7 +297,11 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 			fmt.Println("UserID not properly provided in URL")
 			return
 		}
+
+		//get userID from crud service
 		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/user?id=" + userid)
+
+		//check for response error of 500
 		if respErr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, respErr.Error())
@@ -265,7 +324,11 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 			fmt.Println("An internal error has occured whilst trying to get user data"+bodyString)
 			return
 		}
+
+		//close the request
 		defer req.Body.Close()
+
+		//create new response struct
 		var getResponse GetUserResult
 		decoder := json.NewDecoder(req.Body)
 		err := decoder.Decode(&getResponse)
@@ -275,6 +338,8 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 			fmt.Println("An internal error has occured whilst trying to decode the get user response")
 			return
 		}
+
+		//convert struct back to JSON
 		js, jserr := json.Marshal(getResponse)
 		if jserr != nil {
 			w.WriteHeader(500)
@@ -282,12 +347,15 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 			fmt.Println("Error occured when trying to marshal the response to get user")
 			return
 		}
+
+		//return back to whoever made the call in the first place
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
 	}
 }
-func (s *Server) handleforgetpassword() http.HandlerFunc {
+
+/*func (s *Server) handleforgetpassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		forgetUser := ForgetPassword{}
 		err := json.NewDecoder(r.Body).Decode(&forgetUser)
@@ -296,6 +364,7 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 			fmt.Fprint(w, err.Error())
 			return
 		}
+		//create byte array from JSON payload
 		requestByte, _ := json.Marshal(forgetUser)
 
 		req, respErr := http.Post("http://"+config.CRUDHost+":"+config.CRUDPort+"/forgetpassword", "application/json", bytes.NewBuffer(requestByte))
@@ -325,7 +394,11 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 			fmt.Fprint(w, respErr.Error())
 			return
 		}
+
+		//close the request
 		defer req.Body.Close()
+
+		//create new response struct
 		var forgetResponse ForgetPasswordResult
 		decoder := json.NewDecoder(req.Body)
 		err = decoder.Decode(&forgetResponse)
@@ -334,6 +407,8 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 			fmt.Fprint(w, err.Error())
 			return
 		}
+
+		//convert struct back to JSON
 		js, jserr := json.Marshal(forgetResponse)
 		if jserr != nil {
 			w.WriteHeader(500)
@@ -341,8 +416,11 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 			fmt.Println("Error occured when trying to marshal the response to forget password")
 			return
 		}
+
+		//return back to whoever made the call in the first place
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
 	}
 }
+*/
