@@ -28,7 +28,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			return
 		}
 		if req.StatusCode != 200 {
-			fmt.Println(w, "Request to DB can't be completed...")
+			fmt.Fprint(w, "Request to DB can't be completed...")
 			fmt.Println("Unable to process registration")
 		}
 		if req.StatusCode == 500 {
@@ -39,7 +39,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			}
 			bodyString := string(bodyBytes)
 			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
+			fmt.Println("Request to DB can't be completed..."+bodyString)
 			return
 		}
 		if err != nil {
@@ -59,13 +59,11 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			fmt.Println("Error occured in decoding registration response")
 			return
 		}
-		fmt.Println(registerResponse.UserCreated)
 		js, jserr := json.Marshal(registerResponse)
-		fmt.Println(js)
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println(w, "Error occured when trying to marshal the response to register user")
+			fmt.Println("Error occured when trying to marshal the response to register user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -89,7 +87,7 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 		requestByte, _ := json.Marshal(updateUser)
 		req, err := http.NewRequest("PUT", "http://"+config.CRUDHost+":"+config.CRUDPort+"/user", bytes.NewBuffer(requestByte))
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprint(w, err.Error())
 			fmt.Println("Error in communication with CRUD service endpoint for request to update user")
 			return
 		}
@@ -97,7 +95,7 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 		// Fetch Request
 		resp, err := client.Do(req)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprint(w, err.Error())
 			return
 		}
 		defer resp.Body.Close()
@@ -114,7 +112,7 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println(w, "Error occured when trying to marshal the response to update user")
+			fmt.Println("Error occured when trying to marshal the response to update user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -136,12 +134,12 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 		// Fetch Request
 		resp, err := client.Do(req)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprint(w, err.Error())
 			return
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
-			fmt.Println(w, "An error has occured whilst sending user ID for deletion")
+			fmt.Println("An error has occured whilst sending user ID for deletion")
 		}
 		if resp.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -151,7 +149,7 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 			}
 			bodyString := string(bodyBytes)
 			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
+			fmt.Println("Request to DB can't be completed..."+bodyString)
 			return
 		}
 		var deleteResponse DeleteUserResult
@@ -166,7 +164,7 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println(w, "Error occured when trying to marshal the response to delete a user")
+			fmt.Println("Error occured when trying to marshal the response to delete a user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -180,14 +178,14 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 		password := r.URL.Query().Get("password")
 		if username == "" {
 			w.WriteHeader(500)
-			fmt.Fprint(w, "No username")
-			fmt.Println("A username has not been provided")
+			fmt.Fprint(w, "No username provided in URL")
+			fmt.Println("A username has not been provided in URL")
 			return
 		}
 		if password == "" {
 			w.WriteHeader(500)
-			fmt.Fprint(w, "No password")
-			fmt.Println("A password has not been provided")
+			fmt.Fprint(w, "No password provided in URL")
+			fmt.Println("A password has not been provided in URL")
 			return
 		}
 		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/userlogin?username=" + username + "&password=" + password)
@@ -226,7 +224,7 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println(w, "Error occured when trying to marshal the response to logging in a user")
+			fmt.Println("Error occured when trying to marshal the response to logging in a user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -254,7 +252,7 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 		if req.StatusCode != 200 {
 			w.WriteHeader(500)
 			fmt.Fprint(w, "Request to DB can't be completed...")
-			fmt.Println(w, "Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed...")
 		}
 		if req.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -264,7 +262,7 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 			}
 			bodyString := string(bodyBytes)
 			fmt.Fprintf(w, "An internal error has occured whilst trying to get user data"+bodyString)
-			fmt.Println(w, "An internal error has occured whilst trying to get user data"+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get user data"+bodyString)
 			return
 		}
 		defer req.Body.Close()
@@ -281,7 +279,7 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println(w, "Error occured when trying to marshal the response to get user")
+			fmt.Println("Error occured when trying to marshal the response to get user")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -309,7 +307,7 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 			return
 		}
 		if req.StatusCode != 200 {
-			fmt.Println(w, "Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed...")
 		}
 		if req.StatusCode == 500 {
 			w.WriteHeader(500)
@@ -319,7 +317,7 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 			}
 			bodyString := string(bodyBytes)
 			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println(w, "Request to DB can't be completed..."+bodyString)
+			fmt.Println("Request to DB can't be completed..."+bodyString)
 			return
 		}
 		if err != nil {
@@ -340,7 +338,7 @@ func (s *Server) handleforgetpassword() http.HandlerFunc {
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println(w, "Error occured when trying to marshal the response to forget password")
+			fmt.Println("Error occured when trying to marshal the response to forget password")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
