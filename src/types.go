@@ -58,9 +58,10 @@ type DeleteUserResult struct {
 	Message     string `json:"message"`
 }
 type LoginUserResult struct {
-	UserLoggedIn bool   `json:"userloggedin"`
 	UserID       string `json:"id"`
-	Message      string `json:"message"`
+	Username     string `json:"username"`
+	UserLoggedIn bool   `json:"userloggedin"`
+	Message string `json:"message"`
 }
 type ForgetPasswordResult struct {
 	Email    string `json:"email"`
