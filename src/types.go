@@ -51,7 +51,10 @@ type GetUserResult struct {
 	Name     string `json:"name"`
 	Surname  string `json:"surname"`
 	Email    string `json:"email"`
+	Message  string `json:"message"`
+	GotUser  bool   `json:"gotuser"`
 }
+
 type DeleteUserResult struct {
 	UserDeleted bool   `json:"userdeleted"`
 	UserID      string `json:"id"`
@@ -61,7 +64,7 @@ type LoginUserResult struct {
 	UserID       string `json:"id"`
 	Username     string `json:"username"`
 	UserLoggedIn bool   `json:"userloggedin"`
-	Message string `json:"message"`
+	Message      string `json:"message"`
 }
 type ForgetPasswordResult struct {
 	Email    string `json:"email"`
