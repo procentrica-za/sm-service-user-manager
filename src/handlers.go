@@ -48,7 +48,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			}
 			bodyString := string(bodyBytes)
 			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println("Request to DB can't be completed..."+bodyString)
+			fmt.Println("Request to DB can't be completed..." + bodyString)
 			return
 		}
 		if err != nil {
@@ -82,7 +82,7 @@ func (s *Server) handleregisteruser() http.HandlerFunc {
 			return
 		}
 
-		//return back to whoever made the call in the first place
+		//return back to Front-End user
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -143,7 +143,7 @@ func (s *Server) handleupdateuser() http.HandlerFunc {
 			return
 		}
 
-		//return back to whoever made the call in the first place
+		//return back to Front-End user
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -185,7 +185,7 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 			}
 			bodyString := string(bodyBytes)
 			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println("Request to DB can't be completed..."+bodyString)
+			fmt.Println("Request to DB can't be completed..." + bodyString)
 			return
 		}
 
@@ -208,7 +208,7 @@ func (s *Server) handledeleteuser() http.HandlerFunc {
 			return
 		}
 
-		//return back to whoever made the call in the first place
+		//return back to Front-End user
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -280,7 +280,7 @@ func (s *Server) handleloginuser() http.HandlerFunc {
 			return
 		}
 
-		//return back to whoever made the call in the first place
+		//return back to Front-End user
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
@@ -321,7 +321,7 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 			}
 			bodyString := string(bodyBytes)
 			fmt.Fprintf(w, "An internal error has occured whilst trying to get user data"+bodyString)
-			fmt.Println("An internal error has occured whilst trying to get user data"+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get user data" + bodyString)
 			return
 		}
 
@@ -348,34 +348,41 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 			return
 		}
 
-		//return back to whoever made the call in the first place
+		//return back to Front-End user
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
 	}
 }
 
-/*func (s *Server) handleforgetpassword() http.HandlerFunc {
+func (s *Server) handleforgotpassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		forgetUser := ForgetPassword{}
-		err := json.NewDecoder(r.Body).Decode(&forgetUser)
-		if err != nil {
+		fmt.Println("Handle forgot password Has Been Called in the Cred manager and recieved the email from URL")
+		//Get Email Address from URL
+
+		useremail := r.URL.Query().Get("email")
+
+		//Check if no Email address was provided in the URL
+		if useremail == "" {
 			w.WriteHeader(500)
-			fmt.Fprint(w, err.Error())
+			fmt.Fprint(w, "Email address not properly provided in URL")
+			fmt.Println("Email address not properly provided in URL")
 			return
 		}
-		//create byte array from JSON payload
-		requestByte, _ := json.Marshal(forgetUser)
 
-		req, respErr := http.Post("http://"+config.CRUDHost+":"+config.CRUDPort+"/forgetpassword", "application/json", bytes.NewBuffer(requestByte))
+		//post to crud service
+		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/forgotpassword?email=" + useremail)
 
+		//check for response error of 500
 		if respErr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, respErr.Error())
-			fmt.Println("Error in communication with CRUD service endpoint for request of forget password")
+			fmt.Println("Error in communication with CRUD service endpoint for request to retrieve password reset information")
 			return
 		}
 		if req.StatusCode != 200 {
+			w.WriteHeader(req.StatusCode)
+			fmt.Fprint(w, "Request to DB can't be completed...")
 			fmt.Println("Request to DB can't be completed...")
 		}
 		if req.StatusCode == 500 {
@@ -385,13 +392,8 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 				log.Fatal(err)
 			}
 			bodyString := string(bodyBytes)
-			fmt.Fprintf(w, "Request to DB can't be completed..."+bodyString)
-			fmt.Println("Request to DB can't be completed..."+bodyString)
-			return
-		}
-		if err != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, respErr.Error())
+			fmt.Fprintf(w, "An internal error has occured whilst trying to get advertisement data"+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get advertisement data" + bodyString)
 			return
 		}
 
@@ -399,28 +401,84 @@ func (s *Server) handlegetuser() http.HandlerFunc {
 		defer req.Body.Close()
 
 		//create new response struct
-		var forgetResponse ForgetPasswordResult
+		var forgotpasswordresult ForgotPasswordResult
+
+		//decode request into decoder which converts to the struct
 		decoder := json.NewDecoder(req.Body)
-		err = decoder.Decode(&forgetResponse)
+		err := decoder.Decode(&forgotpasswordresult)
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, err.Error())
+			fmt.Println("Error occured in decoding get Advertisement response ")
 			return
 		}
 
 		//convert struct back to JSON
-		js, jserr := json.Marshal(forgetResponse)
+		js, jserr := json.Marshal(forgotpasswordresult)
 		if jserr != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, jserr.Error())
-			fmt.Println("Error occured when trying to marshal the response to forget password")
+			fmt.Println("Error occured when trying to marshal the decoded response into specified JSON format!")
 			return
 		}
 
-		//return back to whoever made the call in the first place
+		fmt.Println("Creating struct to send to email manager")
+		//Handle forgot password
+		var forgotPasswordEmail ForgotPasswordEmail
+		forgotPasswordEmail.ToEmail = forgotpasswordresult.Email
+		forgotPasswordEmail.Subject = "Study Money Forgot Password"
+		forgotPasswordEmail.Password = forgotpasswordresult.Password
+		forgotPasswordEmail.Message = forgotpasswordresult.Message
+
+		fmt.Print(forgotPasswordEmail)
+
+		fmt.Println("Created struct to send to email manager")
+		/*err1 := json.NewDecoder(r.Body).Decode(&forgotPasswordEmail)
+
+		//handle for bad JSON provided
+		if err1 != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err1.Error())
+			fmt.Println("Improper Reset password details")
+			return
+		}*/
+		//create byte array from JSON payload
+		requestByte1, _ := json.Marshal(forgotPasswordEmail)
+
+		//send to email service
+		req1, respErr1 := http.Post("http://"+config.EMAILHost+":"+config.EMAILPort+"/forgotpassword", "application/json", bytes.NewBuffer(requestByte1))
+
+		fmt.Println("Sent to email service")
+		//check for response error of 500
+		if respErr1 != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr1.Error())
+			fmt.Println("Error received from email service->" + respErr1.Error())
+			return
+		}
+		if req1.StatusCode != 200 {
+			fmt.Fprint(w, "Request to Email Service can't be completed...")
+			fmt.Println("Unable to process password reset")
+		}
+		if req1.StatusCode == 500 {
+			w.WriteHeader(500)
+
+			bodyBytes1, err1 := ioutil.ReadAll(req1.Body)
+			if err1 != nil {
+				log.Fatal(err1)
+			}
+			bodyString := string(bodyBytes1)
+			fmt.Fprintf(w, "Request to Emal Service can't be completed..."+bodyString)
+			fmt.Println("Request to Email Service can't be completed..." + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		//return success back to Front-End user
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.Write(js)
 	}
 }
-*/

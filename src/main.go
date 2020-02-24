@@ -18,6 +18,8 @@ func init() {
 	fmt.Println("Config file has loaded")
 	fmt.Printf("CrudHost: %v\n", config.CRUDHost)
 	fmt.Printf("CrudPort: %v\n", config.CRUDPort)
+	fmt.Printf("EmailHost: %v\n", config.EMAILHost)
+	fmt.Printf("EmailPort: %v\n", config.EMAILPort)
 	fmt.Printf("UsermanagerPort: %v\n", config.USERMANAGERPort)
 }
 
@@ -26,6 +28,8 @@ func CreateConfig() Config {
 	conf := Config{
 		CRUDHost:        os.Getenv("CRUD_Host"),
 		CRUDPort:        os.Getenv("CRUD_Port"),
+		EMAILHost:       os.Getenv("EMAIL_Host"),
+		EMAILPort:       os.Getenv("EMAIL_Port"),
 		USERMANAGERPort: os.Getenv("USER_MANAGER_PORT"),
 	}
 	return conf

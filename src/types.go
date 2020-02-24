@@ -28,9 +28,6 @@ type LoginUser struct {
 type GetUser struct {
 	UserID string `json:"id"`
 }
-type ForgetPassword struct {
-	Email string `json:"email"`
-}
 
 type UpdateUserResult struct {
 	UserUpdated bool   `json:"userupdated"`
@@ -66,9 +63,17 @@ type LoginUserResult struct {
 	UserLoggedIn bool   `json:"userloggedin"`
 	Message      string `json:"message"`
 }
-type ForgetPasswordResult struct {
+type ForgotPasswordResult struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Message  string `json:"message"`
+}
+
+type ForgotPasswordEmail struct {
+	ToEmail  string `json:"toemail"`
+	Subject  string `json:"subject"`
+	Password string `json:"password"`
+	Message  string `json:"message"`
 }
 type LogoutUserResult struct {
 	Username string `json:"username"`
@@ -84,4 +89,6 @@ type Config struct {
 	CRUDHost        string
 	CRUDPort        string
 	USERMANAGERPort string
+	EMAILHost       string
+	EMAILPort       string
 }
