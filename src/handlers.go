@@ -426,8 +426,8 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 		//Handle forgot password
 		var forgotPasswordEmail ForgotPasswordEmail
 		forgotPasswordEmail.ToEmail = forgotpasswordresult.Email
-		forgotPasswordEmail.Subject = "Study Money Forgot Password"
-		forgotPasswordEmail.Password = forgotpasswordresult.Password
+		forgotPasswordEmail.Subject = "Forgot Password"
+		forgotPasswordEmail.Password = "Your new password as requested is: " + forgotpasswordresult.Password
 		forgotPasswordEmail.Message = forgotpasswordresult.Message
 
 		fmt.Print(forgotPasswordEmail)
