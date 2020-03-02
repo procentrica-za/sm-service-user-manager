@@ -422,30 +422,17 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("Creating struct to send to email manager")
-		//Handle forgot password
+		//Take CRUD response and compile a new response for email service
 		var forgotPasswordEmail ForgotPasswordEmail
 		forgotPasswordEmail.ToEmail = forgotpasswordresult.Email
 		forgotPasswordEmail.Subject = "Forgot Password"
 		forgotPasswordEmail.Password = "Your new password as requested is: " + forgotpasswordresult.Password
 		forgotPasswordEmail.Message = forgotpasswordresult.Message
 
-		fmt.Print(forgotPasswordEmail)
-
-		fmt.Println("Created struct to send to email manager")
-		/*err1 := json.NewDecoder(r.Body).Decode(&forgotPasswordEmail)
-
-		//handle for bad JSON provided
-		if err1 != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, err1.Error())
-			fmt.Println("Improper Reset password details")
-			return
-		}*/
 		//create byte array from JSON payload
 		requestByte1, _ := json.Marshal(forgotPasswordEmail)
 
-		//send to email service
+		//send CRUD response to email service
 		req1, respErr1 := http.Post("http://"+config.EMAILHost+":"+config.EMAILPort+"/forgotpassword", "application/json", bytes.NewBuffer(requestByte1))
 
 		fmt.Println("Sent to email service")
@@ -475,6 +462,19 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 
 		//close the request
 		defer req.Body.Close()
+
+		//create new response struct for front-end user
+		var emailResponse EmailResult
+		emailResponse.Message = forgotpasswordresult.Message
+
+		//convert struct back to JSON
+		js, jserr3 := json.Marshal(emailResponse)
+		if jserr3 != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr3.Error())
+			fmt.Println("Error occured when trying to marshal the response to get user")
+			return
+		}
 
 		//return success back to Front-End user
 		w.Header().Set("Content-Type", "application/json")
