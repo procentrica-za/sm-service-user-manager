@@ -482,3 +482,65 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 		w.Write(js)
 	}
 }
+
+func (s *Server) handleupdatepassword() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//get JSON payload
+		updatePassword := UpdatePassword{}
+		err := json.NewDecoder(r.Body).Decode(&updatePassword)
+
+		//handle for bad JSON provided
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		client := &http.Client{}
+
+		//create byte array from JSON payload
+		requestByte, _ := json.Marshal(updatePassword)
+
+		//put to crud service
+		req, err := http.NewRequest("PUT", "http://"+config.CRUDHost+":"+config.CRUDPort+"/userpassword", bytes.NewBuffer(requestByte))
+		if err != nil {
+			fmt.Fprint(w, err.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to update user")
+			return
+		}
+
+		// Fetch Request
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		//close the request
+		defer resp.Body.Close()
+
+		//create new response struct
+		var passwordResponse UpdatePasswordResult
+		decoder := json.NewDecoder(resp.Body)
+		err = decoder.Decode(&passwordResponse)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(passwordResponse)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the response to update user")
+			return
+		}
+
+		//return back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	}
+}

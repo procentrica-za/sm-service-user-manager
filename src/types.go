@@ -80,6 +80,15 @@ type EmailResult struct {
 type LogoutUserResult struct {
 	Username string `json:"username"`
 }
+type UpdatePassword struct {
+	UserID   string `json:"id"`
+	Password string `json:"password"`
+}
+
+type UpdatePasswordResult struct {
+	PasswordUpdated bool   `json:"passwordupdated"`
+	Message         string `json:"message"`
+}
 
 //touter service struct
 type Server struct {
