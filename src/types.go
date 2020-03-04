@@ -75,6 +75,9 @@ type ForgotPasswordEmail struct {
 	Password string `json:"password"`
 	Message  string `json:"message"`
 }
+type EmailResult struct {
+	Message string `json:"message"`
+}
 type LogoutUserResult struct {
 	Username string `json:"username"`
 }
