@@ -4,11 +4,12 @@ import "github.com/gorilla/mux"
 
 //create structs for JSON objects recieved and responses
 type RegisterUser struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
-	Email    string `json:"email"`
+	Username       string `json:"username"`
+	Password       string `json:"password"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Email          string `json:"email"`
+	InsitutionName string `json:"institutionname"`
 }
 type UpdateUser struct {
 	UserID   string `json:"id"`
@@ -88,6 +89,14 @@ type UpdatePassword struct {
 type UpdatePasswordResult struct {
 	PasswordUpdated bool   `json:"passwordupdated"`
 	Message         string `json:"message"`
+}
+
+type InstitutionName struct {
+	Institutionname string `json:"institutionname"`
+}
+
+type InstitutionNameList struct {
+	Institutionnames []InstitutionName `json:"institutionnames"`
 }
 
 //touter service struct
