@@ -544,3 +544,62 @@ func (s *Server) handleupdatepassword() http.HandlerFunc {
 		w.Write(js)
 	}
 }
+
+func (s *Server) handlegetinstitutions() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/institution")
+
+		//check for response error of 500
+		if respErr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to retrieve Institution name information")
+			return
+		}
+		if req.StatusCode != 200 {
+			w.WriteHeader(req.StatusCode)
+			fmt.Fprint(w, "Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed...")
+		}
+		if req.StatusCode == 500 {
+			w.WriteHeader(500)
+			bodyBytes, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			bodyString := string(bodyBytes)
+			fmt.Fprintf(w, "An internal error has occured whilst trying to get Institution name data "+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get Institution name data " + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		institutionNameList := InstitutionNameList{}
+		institutionNameList.Institutionnames = []InstitutionName{}
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&institutionNameList)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			fmt.Println("Error occured in decoding get Institution name response ")
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(institutionNameList)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the decoded response into specified JSON format!")
+			return
+		}
+
+		//return success back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+
+	}
+}

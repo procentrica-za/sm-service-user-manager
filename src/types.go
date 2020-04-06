@@ -4,18 +4,20 @@ import "github.com/gorilla/mux"
 
 //create structs for JSON objects recieved and responses
 type RegisterUser struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
-	Email    string `json:"email"`
+	Username       string `json:"username"`
+	Password       string `json:"password"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Email          string `json:"email"`
+	InsitutionName string `json:"institutionname"`
 }
 type UpdateUser struct {
-	UserID   string `json:"id"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
-	Email    string `json:"email"`
+	UserID         string `json:"id"`
+	Username       string `json:"username"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Email          string `json:"email"`
+	InsitutionName string `json:"institutionname"`
 }
 type DeleteUser struct {
 	UserID string `json:"id"`
@@ -42,13 +44,14 @@ type RegisterUserResult struct {
 	Message     string `json:"message"`
 }
 type GetUserResult struct {
-	UserID   string `json:"id"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
-	Email    string `json:"email"`
-	Message  string `json:"message"`
-	GotUser  bool   `json:"gotuser"`
+	UserID         string `json:"id"`
+	Username       string `json:"username"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Email          string `json:"email"`
+	InsitutionName string `json:"institutionname"`
+	Message        string `json:"message"`
+	GotUser        bool   `json:"gotuser"`
 }
 
 type DeleteUserResult struct {
@@ -88,6 +91,14 @@ type UpdatePassword struct {
 type UpdatePasswordResult struct {
 	PasswordUpdated bool   `json:"passwordupdated"`
 	Message         string `json:"message"`
+}
+
+type InstitutionName struct {
+	Institutionname string `json:"institutionname"`
+}
+
+type InstitutionNameList struct {
+	Institutionnames []InstitutionName `json:"institutionnames"`
 }
 
 //touter service struct
