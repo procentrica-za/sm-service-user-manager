@@ -12,11 +12,12 @@ type RegisterUser struct {
 	InsitutionName string `json:"institutionname"`
 }
 type UpdateUser struct {
-	UserID   string `json:"id"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
-	Email    string `json:"email"`
+	UserID         string `json:"id"`
+	Username       string `json:"username"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Email          string `json:"email"`
+	InsitutionName string `json:"institutionname"`
 }
 type DeleteUser struct {
 	UserID string `json:"id"`
@@ -43,13 +44,14 @@ type RegisterUserResult struct {
 	Message     string `json:"message"`
 }
 type GetUserResult struct {
-	UserID   string `json:"id"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
-	Email    string `json:"email"`
-	Message  string `json:"message"`
-	GotUser  bool   `json:"gotuser"`
+	UserID         string `json:"id"`
+	Username       string `json:"username"`
+	Name           string `json:"name"`
+	Surname        string `json:"surname"`
+	Email          string `json:"email"`
+	InsitutionName string `json:"institutionname"`
+	Message        string `json:"message"`
+	GotUser        bool   `json:"gotuser"`
 }
 
 type DeleteUserResult struct {
