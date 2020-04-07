@@ -50,6 +50,7 @@ type GetUserResult struct {
 	Surname        string `json:"surname"`
 	Email          string `json:"email"`
 	InsitutionName string `json:"institutionname"`
+	AdsRemaining   string `json:"adsremaining"`
 	Message        string `json:"message"`
 	GotUser        bool   `json:"gotuser"`
 }
@@ -84,8 +85,9 @@ type LogoutUserResult struct {
 	Username string `json:"username"`
 }
 type UpdatePassword struct {
-	UserID   string `json:"id"`
-	Password string `json:"password"`
+	UserID          string `json:"id"`
+	CurrentPassword string `json:"currentpassword"`
+	Password        string `json:"password"`
 }
 
 type UpdatePasswordResult struct {
