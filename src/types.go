@@ -50,6 +50,7 @@ type GetUserResult struct {
 	Surname        string `json:"surname"`
 	Email          string `json:"email"`
 	InsitutionName string `json:"institutionname"`
+	AdsRemaining   string `json:"adsremaining"`
 	Message        string `json:"message"`
 	GotUser        bool   `json:"gotuser"`
 }
