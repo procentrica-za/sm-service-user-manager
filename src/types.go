@@ -63,6 +63,7 @@ type LoginUserResult struct {
 	UserID       string `json:"id"`
 	Username     string `json:"username"`
 	UserLoggedIn bool   `json:"userloggedin"`
+	Institution  string `json:"institution"`
 	Message      string `json:"message"`
 }
 type ForgotPasswordResult struct {
