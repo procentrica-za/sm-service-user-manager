@@ -444,8 +444,10 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 			return
 		}
 		if req1.StatusCode != 200 {
+			w.WriteHeader(req1.StatusCode)
 			fmt.Fprint(w, "Request to Email Service can't be completed...")
 			fmt.Println("Unable to process password reset")
+			return
 		}
 		if req1.StatusCode == 500 {
 			w.WriteHeader(500)
