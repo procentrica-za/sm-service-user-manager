@@ -10,5 +10,5 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/forgotpassword", s.handleforgotpassword()).Methods("GET")
 	s.router.HandleFunc("/userpassword", s.handleupdatepassword()).Methods("PUT")
 	s.router.HandleFunc("/institution", s.handlegetinstitutions()).Methods("GET")
-
+	s.router.HandleFunc("/otp", s.handlevalidateotp()).Methods("PUT")
 }

@@ -605,3 +605,65 @@ func (s *Server) handlegetinstitutions() http.HandlerFunc {
 
 	}
 }
+
+func (s *Server) handlevalidateotp() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//get JSON payload
+		validateOtp := ValidateOtp{}
+		err := json.NewDecoder(r.Body).Decode(&validateOtp)
+
+		//handle for bad JSON provided
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		client := &http.Client{}
+
+		//create byte array from JSON payload
+		requestByte, _ := json.Marshal(validateOtp)
+
+		//put to crud service
+		req, err := http.NewRequest("PUT", "http://"+config.CRUDHost+":"+config.CRUDPort+"/otp", bytes.NewBuffer(requestByte))
+		if err != nil {
+			fmt.Fprint(w, err.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to validate otp")
+			return
+		}
+
+		// Fetch Request
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		//close the request
+		defer resp.Body.Close()
+
+		//create new response struct
+		var validateotpresult ValidateOtpResult
+		decoder := json.NewDecoder(resp.Body)
+		err = decoder.Decode(&validateotpresult)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(validateotpresult)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the response to validate otp")
+			return
+		}
+
+		//return back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	}
+}

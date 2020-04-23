@@ -104,6 +104,16 @@ type InstitutionNameList struct {
 	Institutionnames []InstitutionName `json:"institutionnames"`
 }
 
+type ValidateOtp struct {
+	UserID string `json:"userid"`
+	Otp    string `json:"otp"`
+}
+
+type ValidateOtpResult struct {
+	Validated bool   `json:"validated"`
+	Message   string `'json:"message"`
+}
+
 //touter service struct
 type Server struct {
 	router *mux.Router
