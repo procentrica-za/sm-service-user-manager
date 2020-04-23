@@ -12,4 +12,5 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/institution", s.handlegetinstitutions()).Methods("GET")
 	s.router.HandleFunc("/otp", s.handlegetotp()).Methods("GET")
 	s.router.HandleFunc("/otp", s.handlevalidateotp()).Methods("PUT")
+	s.router.HandleFunc("/newotp", s.handlegetnewotp()).Methods("GET")
 }
