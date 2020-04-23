@@ -114,6 +114,23 @@ type ValidateOtpResult struct {
 	Message   string `'json:"message"`
 }
 
+type RequestOtpResult struct {
+	Sent        bool   `json:"sent"`
+	Message     string `'json:"message"`
+	Phonenumber string `json:"phonenumber"`
+	Otp         string `json:"otp"`
+}
+
+type SendText struct {
+	Number  string `json:"number"`
+	Message string `json:"message"`
+}
+
+type OtpResponse struct {
+	Sent    bool   `json:"sent"`
+	Message string `'json:"message"`
+}
+
 //touter service struct
 type Server struct {
 	router *mux.Router
@@ -126,4 +143,6 @@ type Config struct {
 	USERMANAGERPort string
 	EMAILHost       string
 	EMAILPort       string
+	TEXTHost        string
+	TEXTPort        string
 }
