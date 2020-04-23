@@ -131,6 +131,10 @@ type OtpResponse struct {
 	Message string `'json:"message"`
 }
 
+type Status struct {
+	Isverified bool `json:"isverified"`
+}
+
 //touter service struct
 type Server struct {
 	router *mux.Router
