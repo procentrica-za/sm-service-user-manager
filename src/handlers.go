@@ -605,3 +605,405 @@ func (s *Server) handlegetinstitutions() http.HandlerFunc {
 
 	}
 }
+
+func (s *Server) handlevalidateotp() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//get JSON payload
+		validateOtp := ValidateOtp{}
+		err := json.NewDecoder(r.Body).Decode(&validateOtp)
+
+		//handle for bad JSON provided
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		client := &http.Client{}
+
+		//create byte array from JSON payload
+		requestByte, _ := json.Marshal(validateOtp)
+
+		//put to crud service
+		req, err := http.NewRequest("PUT", "http://"+config.CRUDHost+":"+config.CRUDPort+"/otp", bytes.NewBuffer(requestByte))
+		if err != nil {
+			fmt.Fprint(w, err.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to validate otp")
+			return
+		}
+
+		// Fetch Request
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		//close the request
+		defer resp.Body.Close()
+
+		//create new response struct
+		var validateotpresult ValidateOtpResult
+		decoder := json.NewDecoder(resp.Body)
+		err = decoder.Decode(&validateotpresult)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(validateotpresult)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the response to validate otp")
+			return
+		}
+
+		//return back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	}
+}
+
+func (s *Server) handlegetotp() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Handle get otp Has Been Called in the Cred manager and recieved the id and number from URL")
+		//Get Email Address from URL
+
+		userid := r.URL.Query().Get("userid")
+		phonenumber := r.URL.Query().Get("phonenumber")
+
+		//Check if no Email address was provided in the URL
+		if userid == "" {
+			w.WriteHeader(500)
+			fmt.Fprint(w, "User ID not properly provided in URL")
+			fmt.Println("User ID not properly provided in URL")
+			return
+		}
+
+		if phonenumber == "" {
+			w.WriteHeader(500)
+			fmt.Fprint(w, "User number not properly provided in URL")
+			fmt.Println("User number not properly provided in URL")
+			return
+		}
+
+		//post to crud service
+		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/otp?userid=" + userid + "&phonenumber=" + phonenumber)
+
+		//check for response error of 500
+		if respErr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to retrieve get otp information")
+			return
+		}
+		if req.StatusCode != 200 {
+			w.WriteHeader(req.StatusCode)
+			fmt.Fprint(w, "Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed...")
+		}
+		if req.StatusCode == 500 {
+			w.WriteHeader(500)
+			bodyBytes, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			bodyString := string(bodyBytes)
+			fmt.Fprintf(w, "An internal error has occured whilst trying to get otp"+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get otp" + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		//create new response struct
+		var requestotpresult RequestOtpResult
+
+		//decode request into decoder which converts to the struct
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&requestotpresult)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			fmt.Println("Error occured in decoding get otp response ")
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(requestotpresult)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the decoded response into specified JSON format!")
+			return
+		}
+
+		//Take CRUD response and compile a new response for email service
+		var sendOtp SendText
+		sendOtp.Number = requestotpresult.Phonenumber
+		sendOtp.Message = "Your Study Money OTP is: " + requestotpresult.Otp
+		//create byte array from JSON payload
+		requestByte1, _ := json.Marshal(sendOtp)
+
+		//send CRUD response to email service
+		req1, respErr1 := http.Post("http://"+config.TEXTHost+":"+config.TEXTPort+"/text", "application/json", bytes.NewBuffer(requestByte1))
+
+		fmt.Println("Sent to text messaging service")
+		//check for response error of 500
+		if respErr1 != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr1.Error())
+			fmt.Println("Error received from text service->" + respErr1.Error())
+			return
+		}
+		if req1.StatusCode != 200 {
+			w.WriteHeader(req1.StatusCode)
+			fmt.Fprint(w, "Request to Text messaging Service can't be completed...")
+			fmt.Println("Unable to process request OTP")
+			return
+		}
+		if req1.StatusCode == 500 {
+			w.WriteHeader(500)
+
+			bodyBytes1, err1 := ioutil.ReadAll(req1.Body)
+			if err1 != nil {
+				log.Fatal(err1)
+			}
+			bodyString := string(bodyBytes1)
+			fmt.Fprintf(w, "Request to Emal Service can't be completed..."+bodyString)
+			fmt.Println("Request to Email Service can't be completed..." + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		//create new response struct for front-end user
+		var textResponse OtpResponse
+		textResponse.Sent = requestotpresult.Sent
+		textResponse.Message = requestotpresult.Message
+
+		//convert struct back to JSON
+		js, jserr3 := json.Marshal(textResponse)
+		if jserr3 != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr3.Error())
+			fmt.Println("Error occured when trying to marshal the response to get user")
+			return
+		}
+
+		//return success back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	}
+}
+
+func (s *Server) handlegetnewotp() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Handle get new otp Has Been Called in the Cred manager and recieved the id and number from URL")
+		//Get Email Address from URL
+
+		userid := r.URL.Query().Get("userid")
+		phonenumber := r.URL.Query().Get("phonenumber")
+
+		//Check if no Email address was provided in the URL
+		if userid == "" {
+			w.WriteHeader(500)
+			fmt.Fprint(w, "User ID not properly provided in URL")
+			fmt.Println("User ID not properly provided in URL")
+			return
+		}
+
+		if phonenumber == "" {
+			w.WriteHeader(500)
+			fmt.Fprint(w, "User number not properly provided in URL")
+			fmt.Println("User number not properly provided in URL")
+			return
+		}
+
+		//post to crud service
+		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/newotp?userid=" + userid + "&phonenumber=" + phonenumber)
+
+		//check for response error of 500
+		if respErr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to retrieve get otp information")
+			return
+		}
+		if req.StatusCode != 200 {
+			w.WriteHeader(req.StatusCode)
+			fmt.Fprint(w, "Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed...")
+		}
+		if req.StatusCode == 500 {
+			w.WriteHeader(500)
+			bodyBytes, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			bodyString := string(bodyBytes)
+			fmt.Fprintf(w, "An internal error has occured whilst trying to get otp"+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get otp" + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		//create new response struct
+		var requestotpresult RequestOtpResult
+
+		//decode request into decoder which converts to the struct
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&requestotpresult)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			fmt.Println("Error occured in decoding get otp response ")
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(requestotpresult)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the decoded response into specified JSON format!")
+			return
+		}
+
+		//Take CRUD response and compile a new response for email service
+		var sendOtp SendText
+		sendOtp.Number = requestotpresult.Phonenumber
+		sendOtp.Message = "Your Study Money OTP is: " + requestotpresult.Otp
+		//create byte array from JSON payload
+		requestByte1, _ := json.Marshal(sendOtp)
+
+		//send CRUD response to email service
+		req1, respErr1 := http.Post("http://"+config.TEXTHost+":"+config.TEXTPort+"/text", "application/json", bytes.NewBuffer(requestByte1))
+
+		fmt.Println("Sent to text messaging service")
+		//check for response error of 500
+		if respErr1 != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr1.Error())
+			fmt.Println("Error received from text service->" + respErr1.Error())
+			return
+		}
+		if req1.StatusCode != 200 {
+			w.WriteHeader(req1.StatusCode)
+			fmt.Fprint(w, "Request to Text messaging Service can't be completed...")
+			fmt.Println("Unable to process request OTP")
+			return
+		}
+		if req1.StatusCode == 500 {
+			w.WriteHeader(500)
+
+			bodyBytes1, err1 := ioutil.ReadAll(req1.Body)
+			if err1 != nil {
+				log.Fatal(err1)
+			}
+			bodyString := string(bodyBytes1)
+			fmt.Fprintf(w, "Request to Emal Service can't be completed..."+bodyString)
+			fmt.Println("Request to Email Service can't be completed..." + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		//create new response struct for front-end user
+		var textResponse OtpResponse
+		textResponse.Sent = requestotpresult.Sent
+		textResponse.Message = requestotpresult.Message
+
+		//convert struct back to JSON
+		js, jserr3 := json.Marshal(textResponse)
+		if jserr3 != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr3.Error())
+			fmt.Println("Error occured when trying to marshal the response to get user")
+			return
+		}
+
+		//return success back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	}
+}
+
+func (s *Server) handlegetverificationstatus() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//get userID from url
+		userid := r.URL.Query().Get("userid")
+		if userid == "" {
+			w.WriteHeader(500)
+			fmt.Fprint(w, "UserID not properly provided in URL")
+			fmt.Println("UserID not properly provided in URL")
+			return
+		}
+
+		//get userID from crud service
+		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/status?userid=" + userid)
+
+		//check for response error of 500
+		if respErr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to retrieve status")
+			return
+		}
+		if req.StatusCode != 200 {
+			w.WriteHeader(500)
+			fmt.Fprint(w, "Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed...")
+		}
+		if req.StatusCode == 500 {
+			w.WriteHeader(500)
+			bodyBytes, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			bodyString := string(bodyBytes)
+			fmt.Fprintf(w, "An internal error has occured whilst trying to get status"+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get status" + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		//create new response struct
+		var getResponse Status
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&getResponse)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			fmt.Println("An internal error has occured whilst trying to decode the get outstanding status")
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(getResponse)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the response to get status")
+			return
+		}
+
+		//return back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	}
+}
