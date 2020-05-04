@@ -135,6 +135,16 @@ type Status struct {
 	Isverified bool `json:"isverified"`
 }
 
+type PurchaseAdvertisement struct {
+	ID      string `json:"id"`
+	Ammount string `json:"ammount"`
+}
+
+type PurchaseAdvertisementResult struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
 //touter service struct
 type Server struct {
 	router *mux.Router
