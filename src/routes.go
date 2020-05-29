@@ -14,6 +14,7 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/otp", s.handlevalidateotp()).Methods("PUT")
 	s.router.HandleFunc("/newotp", s.handlegetnewotp()).Methods("GET")
 	s.router.HandleFunc("/status", s.handlegetverificationstatus()).Methods("GET")
+	s.router.HandleFunc("/password", s.handlegetpassword()).Methods("GET")
 
 	/*
 		======================================= Purchase Ads ====================================

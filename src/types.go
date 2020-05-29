@@ -80,7 +80,8 @@ type ForgotPasswordEmail struct {
 	Message  string `json:"message"`
 }
 type EmailResult struct {
-	Message string `json:"message"`
+	Message  string `json:"message"`
+	Password string `json:"password"`
 }
 type LogoutUserResult struct {
 	Username string `json:"username"`
@@ -148,6 +149,13 @@ type PurchaseAdvertisementResult struct {
 //touter service struct
 type Server struct {
 	router *mux.Router
+}
+
+type getPassword struct {
+	UserID   string `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	GotUser  bool   `json:"gotuser"`
 }
 
 //config struct
