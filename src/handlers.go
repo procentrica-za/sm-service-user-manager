@@ -468,6 +468,7 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 		//create new response struct for front-end user
 		var emailResponse EmailResult
 		emailResponse.Message = forgotpasswordresult.Message
+		emailResponse.Password = forgotpasswordresult.Password
 
 		//convert struct back to JSON
 		js, jserr3 := json.Marshal(emailResponse)
@@ -1071,5 +1072,66 @@ func (s *Server) handlepurchaseads() http.HandlerFunc {
 		w.WriteHeader(200)
 		w.Write(js)
 
+	}
+}
+
+func (s *Server) handlegetpassword() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//get user email from url
+		email := r.URL.Query().Get("email")
+		//get userID from crud service
+		req, respErr := http.Get("http://" + config.CRUDHost + ":" + config.CRUDPort + "/password?email=" + email)
+
+		//check for response error of 500
+		if respErr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, respErr.Error())
+			fmt.Println("Error in communication with CRUD service endpoint for request to retrieve user information")
+			return
+		}
+		if req.StatusCode != 200 {
+			w.WriteHeader(500)
+			fmt.Fprint(w, "Request to DB can't be completed...")
+			fmt.Println("Request to DB can't be completed...")
+		}
+		if req.StatusCode == 500 {
+			w.WriteHeader(500)
+			bodyBytes, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			bodyString := string(bodyBytes)
+			fmt.Fprintf(w, "An internal error has occured whilst trying to get user data"+bodyString)
+			fmt.Println("An internal error has occured whilst trying to get user data" + bodyString)
+			return
+		}
+
+		//close the request
+		defer req.Body.Close()
+
+		//create new response struct
+		var getResponse getPassword
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(&getResponse)
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err.Error())
+			fmt.Println("An internal error has occured whilst trying to decode the get user response")
+			return
+		}
+
+		//convert struct back to JSON
+		js, jserr := json.Marshal(getResponse)
+		if jserr != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, jserr.Error())
+			fmt.Println("Error occured when trying to marshal the response to get user")
+			return
+		}
+
+		//return back to Front-End user
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
 	}
 }
