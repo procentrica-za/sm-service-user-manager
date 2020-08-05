@@ -403,7 +403,7 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 		//create new response struct
 		var forgotpasswordresult ForgotPasswordResult
 
-		//decode request into decoder which converts to the struct
+		//decode request into decoder which converts to the struct.
 		decoder := json.NewDecoder(req.Body)
 		err := decoder.Decode(&forgotpasswordresult)
 		if err != nil {
