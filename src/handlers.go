@@ -434,7 +434,7 @@ func (s *Server) handleforgotpassword() http.HandlerFunc {
 
 		//send CRUD response to email service
 		req1, respErr1 := http.Post("http://"+config.EMAILHost+":"+config.EMAILPort+"/forgotpassword", "application/json", bytes.NewBuffer(requestByte1))
-
+		fmt.Println(req1)
 		fmt.Println("Sent to email service")
 		//check for response error of 500
 		if respErr1 != nil {
